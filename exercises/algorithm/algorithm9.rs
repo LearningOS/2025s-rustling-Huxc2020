@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,6 +37,19 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.bubble_up(self.count);
+    }
+
+    fn bubble_up(&mut self, idx: usize) {
+        let parent = self.parent_idx(idx);
+        if parent > 0 {
+            if (self.comparator)(&self.items[idx], &self.items[parent]) {
+                self.items.swap(idx, parent);
+                self.bubble_up(parent);
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +70,38 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+
+        // 如果没有左子节点，则没有子节点
+        if left > self.count {
+            return idx; // 返回自身索引表示没有子节点
+        }
+
+        // 如果只有左子节点，没有右子节点
+        if right > self.count {
+            return left;
+        }
+
+        // 根据比较器比较左右子节点
+        if (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
+    }
+
+    fn bubble_down(&mut self, idx: usize) {
+        if self.children_present(idx) {
+            let smallest_child = self.smallest_child_idx(idx);
+            // 只有当smallest_child不等于idx时才需要交换和继续下沉
+            if smallest_child != idx
+                && (self.comparator)(&self.items[smallest_child], &self.items[idx])
+            {
+                self.items.swap(smallest_child, idx);
+                self.bubble_down(smallest_child);
+            }
+        }
     }
 }
 
@@ -79,13 +122,27 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+
+        // 先获取最后一个元素的克隆，避免同时可变和不可变借用
+        let last_item = self.items[self.count].clone();
+        let result = std::mem::replace(&mut self.items[1], last_item);
+        self.items.pop();
+        self.count -= 1;
+
+        if self.count > 0 {
+            self.bubble_down(1);
+        }
+
+        Some(result)
     }
 }
 

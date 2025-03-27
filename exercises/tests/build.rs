@@ -10,7 +10,9 @@ fn main() {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    println!("cargo:TEST_FOO={}", timestamp);
+
+    // 设置环境变量，使用cargo:rustc-env=VAR=VALUE格式
+    println!("cargo:rustc-env=TEST_FOO={}", timestamp);
 
     // In tests8, we should enable "pass" feature to make the
     // testcase return early. Fill in the command to tell
